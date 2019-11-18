@@ -76,4 +76,74 @@ df %>%
   ACF() %>% 
   autoplot()
 ```
+```{r}
+Y_hat <- extract(fit, "Y_hat")[[1]]
+```
+```{r}
+tibble(discoveries = Y_hat %>% as.vector())%>% 
+  ggplot(aes(discoveries))+
+  geom_density()+
+  geom_density(data=df)
+```
+
+```{r}
+df %>%
+  pull(discoveries) %>% 
+  max()
+
+Y_hat %>% 
+  as.data.frame() %>% 
+  summarise_all(max) %>% 
+  {which(.>12)}
+```
+
+# Neg_bin Model
+
+```{r}
+Y_hat <- extract(fit_negbin_results$fit_negbin, "Y_hat")[[1]]
+
+tibble(discoveries = Y_hat %>% as.vector())%>% 
+  ggplot(aes(discoveries))+
+  geom_density()+
+  geom_density(data=df)
+```
+
+```{r}
+df %>%
+  pull(discoveries) %>% 
+  max()
+
+Y_hat %>% 
+  as.data.frame() %>% 
+  summarise_all(max) %>% 
+  {which(.>12)}
+```
+
+```{r}
+mus <- extract(fit_negbin_results$fit_negbin,"mu")[[1]]
+qplot(mus)
+```
+```{r}
+print(fit_negbin_results$fit_negbin, probs = c(0.1, 0.9), var="mu")
+```
+
+```{r}
+library(tidybayes)
+```
+```{r}
+negbin_model <- stan_model("discoveries_negbin.stan")
+```
+```{r}
+dat <- compose_data(negbin_model, df)
+```
+```{r}
+fit <- sampling(negbin_model, data=dat)
+```
+```{r}
+recover_types(fit) %>% 
+  spread_draws(mu) %>% 
+  median_qi(.width = .8)
+```
+
+
 
