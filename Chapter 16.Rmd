@@ -1,0 +1,79 @@
+---
+title: "Chapter 16"
+author: "Paul"
+date: '`r format(Sys.Date(), "%d\\. %m\\. %Y")`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+extrafont::loadfonts(device = "win")
+windowsFonts("Arial_Narrow" = windowsFont("Arial Narrow"))
+options(mc.cores = parallel::detectCores())
+library(tidyverse)
+theme_set(hrbrthemes::theme_ipsum(base_family = "Arial_Narrow"))
+```
+
+```{r}
+library(rstan)
+```
+The le evaluation_discoveries.csv contains data on the numbers of \great" inventions and
+scientic discoveries (Xt) in each year from 1860 to 1959 [1]. In this question you will develop a
+model to explain the variation in scientic inventions over time. The simplest model here is to
+assume that (a.) one discovery is independent of all others, and (b.) the rate of occurrence of
+discoveries is the same in all years (). Since the data is discrete, these assumptions suggest the
+use a Poisson likelihood,
+
+# Load data
+```{r}
+df <- rio::import(here::here("data", "evaluation_discoveries.csv"))
+```
+
+```{r}
+dat <- list(Y = df$discoveries, N = dim(df)[[1]])
+```
+# Fit model
+
+done in another script
+
+```{r}
+lambda <- extract(fit,"lambda")[[1]]
+```
+
+# credible interval
+
+```{r}
+print(fit, probs = c(0.1,0.9))
+```
+
+```{r}
+qplot(lambda)
+```
+```{r}
+df %>% 
+  ggplot(aes(discoveries))+
+  geom_histogram()
+
+df %>% 
+  ggplot(aes(time, discoveries))+
+  geom_point()
+```
+```{r}
+library(tsibble)
+library(feasts)
+```
+```{r}
+df %>% 
+  as_tsibble(index = time) %>% 
+  ACF() %>% 
+  autoplot()
+```
+
