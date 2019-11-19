@@ -145,5 +145,9 @@ recover_types(fit) %>%
   median_qi(.width = .8)
 ```
 
+```{r}
+discoveries_sim <- extract(fit, "discoveries_hat")[[1]]
+sweep(discoveries_sim, 2, df$discoveries) %>% dim
+```
 
-
+# AR(1) model: not sure how to do mu[1]

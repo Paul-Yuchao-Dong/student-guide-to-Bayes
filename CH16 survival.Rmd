@@ -1,0 +1,44 @@
+---
+title: "CH16 survival"
+author: "Paul"
+date: '`r format(Sys.Date(), "%d\\. %m\\. %Y")`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+extrafont::loadfonts(device = "win")
+windowsFonts("Arial_Narrow" = windowsFont("Arial Narrow"))
+options(mc.cores = parallel::detectCores())
+library(tidyverse)
+theme_set(hrbrthemes::theme_ipsum(base_family = "Arial_Narrow"))
+```
+
+```{r}
+library(rstan)
+library(tidybayes)
+```
+
+```{r}
+df <- rio::import(here::here("data","stan_survival.csv"))
+```
+
+```{r}
+dat <- list(n = 1000, y = df$x)
+```
+```{r}
+custom_dist <- stan_model("ch16_surv.stan")
+fit <- sampling(custom_dist, data = dat)
+```
+```{r}
+print(fit)
+```
+
