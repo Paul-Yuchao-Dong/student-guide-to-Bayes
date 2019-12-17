@@ -1,0 +1,130 @@
+---
+title: "Ch17 Problem Set"
+author: "Your Name"
+date: '`r format(Sys.Date(), "%d\\. %m\\. %Y")`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+extrafont::loadfonts(device = "win")
+windowsFonts("Arial_Narrow" = windowsFont("Arial Narrow"))
+options(mc.cores = parallel::detectCores())
+library(tidyverse)
+theme_set(hrbrthemes::theme_ipsum(base_family = "Arial_Narrow"))
+```
+```{r}
+library(rstan)
+library(tidybayes)
+library(shinystan)
+```
+```{r}
+df <- rio::import(here::here("data", "hierarchical_betaBlocker.csv"))
+```
+# 17.1.1
+
+```{r}
+model1 <- stan_model("hierarchical1.stan")
+```
+
+
+## Generate fake data
+```{r}
+inv_logit <- function(x) exp(x)/(1+exp(x))
+```
+
+```{r}
+n <- 22
+
+mus <- rnorm(n, 0 ,0.1)
+etas <- rnorm(n, 0, 10)
+
+pt <- inv_logit(mus + etas)
+pc <- inv_logit(mus)
+
+df2 <- df %>% 
+  mutate(rt = rbinom(n, nt, pt),
+         rc = rbinom(n, nc, pc)
+         )
+```
+
+```{r}
+fit1 <- sampling(model1,compose_data(df2))
+```
+```{r}
+plot(fit1)
+```
+```{r}
+print(fit1)
+```
+```{r}
+pairs(fit1)
+```
+## Use real data
+```{r}
+fit1.2 <- sampling(model1, compose_data(df))
+```
+```{r}
+print(fit1.2)
+```
+
+```{r}
+fit1.2 %>% 
+  launch_shinystan()
+```
+
+# Hierarchical Model
+
+```{r}
+model2 <- stan_model("hierarchical2.stan")
+```
+## Use fake data
+```{r}
+d <- 0
+sigma <- 1
+
+n <- 22
+
+mus <- rnorm(n, 0 ,1)
+etas <- rnorm(n, d, sigma)
+
+pt <- inv_logit(mus + etas)
+pc <- inv_logit(mus)
+
+df2 <- df %>% 
+  mutate(rt = rbinom(n, nt, pt),
+         rc = rbinom(n, nc, pc)
+         )
+
+```
+```{r}
+fit2 <- sampling(model2, compose_data(df2))
+```
+```{r}
+print(fit2)
+```
+```{r}
+fit2 %>% 
+  launch_shinystan()
+```
+## Use real data
+```{r}
+fit2.1 <- sampling(model2, compose_data(df), control = list(adapt_delta=0.95))
+```
+```{r}
+print(fit2.1)
+```
+```{r}
+fit2.1 %>% 
+  launch_shinystan()
+```
+
+
